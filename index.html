@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Alpine js</title>
+    <script defer src="cdn.min.js"></script>
+    <script src="tailwind.18"></script>
+</head>
+
+<body>
+    <div x-data="game()" class="px-10 flex items-center justify-center min-h-screen">
+        <h1 class="fixed top-32 right-12 font-bold text-3xl">
+            <span x-text="points"></span>
+            <span class="text-xs">pts</span>
+        </h1>
+        <div class="flex-1 grid grid-cols-4 gap-10">
+            <template x-for="card in cards">
+                <div>
+                    <button @click="flipCard(card)" :style="'background: ' + (card.flipped ? card.color : '#999')"
+                        x-show="!card.cleared" class="h-32 w-full"></button>
+                </div>
+            </template>
+        </div>
+    </div>
+    <div x-data="{show:false , message:'Default message'}"
+        class="fixed bottom-20 right-20 bg-green-500 px-6 py-2 text-white font-bold mb-2 rounded"
+        x-show.transition.opacity="show" @flash.window="
+        message = $event.detail.message;
+        show = true;
+        setTimeout(()=> show=false , 1000)
+        ">
+        <span x-text="message" class="pr-4"></span>
+        <button @click="show=false" class="font-bold text-2xl">&times;</button>
+    </div>
+    <script>
+        function pause(milliseconds = 1000) {
+            return new Promise(resolve => setTimeout(resolve, milliseconds))
+        }
+
+        function flash(message) {
+            window.dispatchEvent(new CustomEvent('flash', {
+                detail: {
+                    message
+                }
+            }));
+        }
+
+        function game() {
+            return {
+                cards: [{
+                    color: 'blue',
+                    flipped: false,
+                    cleared: false
+                }, {
+                    color: 'red',
+                    flipped: false,
+                    cleared: false
+                }, {
+                    color: 'green',
+                    flipped: false,
+                    cleared: false
+                }, {
+                    color: 'yellow',
+                    flipped: false,
+                    cleared: false
+                }, {
+                    color: 'blue',
+                    flipped: false,
+                    cleared: false
+                }, {
+                    color: 'red',
+                    flipped: false,
+                    cleared: false
+                }, {
+                    color: 'green',
+                    flipped: false,
+                    cleared: false
+                }, {
+                    color: 'yellow',
+                    flipped: false,
+                    cleared: false
+                }],
+                get flippedCards() {
+                    return this.cards.filter(card => card.flipped)
+                },
+                get clearedCards() {
+                    return this.cards.filter(card => card.cleared)
+                },
+                get points() {
+                    return this.clearedCards.length
+                },
+                async flipCard(card) {
+                    if (this.flippedCards.length == 2) return;
+                    card.flipped = !card.flipped
+                    if (this.flippedCards.length == 2) {
+                        await pause()
+                        if (this.hasMatch()) {
+                            flash('You found a match');
+                            this.flippedCards.forEach(card => card.cleared = true);
+                            if (this.points == this.cards.length) alert('You won');
+                        }
+
+                        this.flippedCards.forEach(card => card.flipped = false)
+                    }
+                },
+                hasMatch() {
+                    return this.flippedCards[0].color == this.flippedCards[1].color
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
